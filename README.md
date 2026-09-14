@@ -47,8 +47,9 @@ gen.full_name()        # "Karen McDonald"
 gen.many(3)             # ["Sarah van der Berg", "David Lopez", "Mary O'Connor"]
 ```
 
-`RandomNameGenerator` ships with a small built-in name pool (deliberately
-messy, to double as a formatter demo) but accepts your own lists:
+`RandomNameGenerator` ships with a real-sized built-in name pool (a few
+hundred first and last names, deliberately left messy-cased to double as a
+formatter demo) but accepts your own lists:
 
 ```python
 gen = RandomNameGenerator(
@@ -59,8 +60,9 @@ gen = RandomNameGenerator(
 
 ## Status
 
-First working version. The default name pools are small placeholders, not a
-real dataset - see the roadmap for what's planned next.
+First working version. The default name pools are now real-sized. Still
+missing: "Last, First" reordering, stripping titles/suffixes, and a test
+suite - see "What it doesn't do" above for the full list of gaps.
 
 ## License
 
