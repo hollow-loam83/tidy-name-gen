@@ -6,10 +6,11 @@ internal whitespace, non-breaking spaces copied from a web page, and so on.
 This module turns that mess into a single predictable casing so the rest of
 a pipeline (matching, deduping, display) can rely on it.
 
-It is deliberately narrow: it fixes casing and whitespace, and knows about
-a handful of common patterns (Mc-, apostrophes, hyphenated names, lowercase
-particles like "van" or "de la"). It does not try to parse name order,
-strip titles, or guess nicknames - see the README for what's out of scope.
+It is deliberately narrow: it fixes casing and whitespace, knows about a
+handful of common patterns (Mc-, apostrophes, hyphenated names, lowercase
+particles like "van" or "de la"), and reorders simple "Last, First" input.
+It does not strip titles or suffixes, or guess nicknames - see the README
+for what's out of scope.
 """
 
 import re
@@ -26,7 +27,8 @@ _PARTICLES = frozenset(
 
 
 def normalize_name(raw):
-    """Return `raw` with whitespace collapsed and casing fixed.
+    """Return `raw` with whitespace collapsed, casing fixed, and "Last,
+    First" input reordered to "First Last".
 
     Empty or None input returns "". Non-breaking spaces (as seen in text
     copy-pasted from web pages) are treated like regular spaces.
@@ -37,7 +39,23 @@ def normalize_name(raw):
     text = _WHITESPACE_RE.sub(" ", text).strip()
     if not text:
         return ""
+    text = _reorder_last_first(text)
     return " ".join(_format_token(token) for token in text.split(" "))
+
+
+def _reorder_last_first(text):
+    # Only handle the unambiguous case: exactly one comma splitting the
+    # string into two non-empty halves. A second comma usually means a
+    # suffix ("Smith, John, Jr.") which this formatter doesn't parse yet,
+    # so leave those alone rather than guess.
+    if text.count(",") != 1:
+        return text
+    last, first = text.split(",", 1)
+    last = last.strip()
+    first = first.strip()
+    if not last or not first:
+        return text
+    return f"{first} {last}"
 
 
 def _format_token(token):

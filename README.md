@@ -18,10 +18,10 @@ to prove the formatter is worth having.
 - apostrophes (`o'brien` -> `O'Brien`)
 - hyphenated names (`ST-PIERRE` -> `St-Pierre`)
 - lowercase particles (`DE LA CRUZ` -> `de la Cruz`, `VAN DER BERG` -> `van der Berg`)
+- "Last, First" input (`SMITH, JOHN` -> `John Smith`)
 
 ## What it doesn't do
 
-- reorder "Last, First" input
 - strip titles or suffixes (Dr., Jr., III)
 - guess at nicknames or middle names
 - handle non-Latin scripts
@@ -37,6 +37,7 @@ from tidyname import normalize_name
 normalize_name("MARY O'BRIEN")        # "Mary O'Brien"
 normalize_name("  jean   VAN DYKE  ") # "Jean van Dyke"
 normalize_name("mcdonald-smith")      # "McDonald-Smith"
+normalize_name("SMITH, JOHN")         # "John Smith"
 ```
 
 ```python
@@ -60,9 +61,10 @@ gen = RandomNameGenerator(
 
 ## Status
 
-First working version. The default name pools are now real-sized. Still
-missing: "Last, First" reordering, stripping titles/suffixes, and a test
-suite - see "What it doesn't do" above for the full list of gaps.
+First working version. The default name pools are now real-sized, and
+"Last, First" input is reordered automatically. Still missing: stripping
+titles/suffixes and a test suite - see "What it doesn't do" above for the
+full list of gaps.
 
 ## License
 
