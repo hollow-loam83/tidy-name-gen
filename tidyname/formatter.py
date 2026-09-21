@@ -8,9 +8,10 @@ a pipeline (matching, deduping, display) can rely on it.
 
 It is deliberately narrow: it fixes casing and whitespace, knows about a
 handful of common patterns (Mc-, apostrophes, hyphenated names, lowercase
-particles like "van" or "de la"), and reorders simple "Last, First" input.
-It does not strip titles or suffixes, or guess nicknames - see the README
-for what's out of scope.
+particles like "van" or "de la"), reorders simple "Last, First" input, and
+strips a small set of common titles and suffixes (Dr., Jr., III). It does
+not guess nicknames or middle names - see the README for what's out of
+scope.
 """
 
 import re
@@ -25,10 +26,20 @@ _PARTICLES = frozenset(
     {"de", "del", "della", "der", "den", "di", "du", "la", "le", "van", "von", "bin", "al", "da"}
 )
 
+# Leading title, stripped once from the start of the string ("Dr. John
+# Smith" -> "John Smith"). Only one is stripped - "Dr. Prof. Smith" is rare
+# enough not to bother with.
+_TITLE_RE = re.compile(r"^(dr|mr|mrs|ms|miss|prof|rev)\.?\s+", re.IGNORECASE)
+
+# Trailing generational or professional suffix, with an optional leading
+# comma ("John Smith, Jr." and "John Smith Jr." both work). Applied
+# repeatedly so "John Smith Jr., PhD" loses both.
+_SUFFIX_RE = re.compile(r"[,\s]+(jr|sr|ii|iii|iv|v|vi|phd|md|esq)\.?$", re.IGNORECASE)
+
 
 def normalize_name(raw):
-    """Return `raw` with whitespace collapsed, casing fixed, and "Last,
-    First" input reordered to "First Last".
+    """Return `raw` with whitespace collapsed, casing fixed, titles/suffixes
+    stripped, and "Last, First" input reordered to "First Last".
 
     Empty or None input returns "". Non-breaking spaces (as seen in text
     copy-pasted from web pages) are treated like regular spaces.
@@ -39,15 +50,27 @@ def normalize_name(raw):
     text = _WHITESPACE_RE.sub(" ", text).strip()
     if not text:
         return ""
+    text = _TITLE_RE.sub("", text)
+    text = _strip_suffixes(text)
     text = _reorder_last_first(text)
+    if not text:
+        return ""
     return " ".join(_format_token(token) for token in text.split(" "))
+
+
+def _strip_suffixes(text):
+    while True:
+        stripped = _SUFFIX_RE.sub("", text)
+        if stripped == text:
+            return text
+        text = stripped
 
 
 def _reorder_last_first(text):
     # Only handle the unambiguous case: exactly one comma splitting the
-    # string into two non-empty halves. A second comma usually means a
-    # suffix ("Smith, John, Jr.") which this formatter doesn't parse yet,
-    # so leave those alone rather than guess.
+    # string into two non-empty halves. Suffixes are stripped before this
+    # runs, so a remaining second comma is genuinely ambiguous - leave it
+    # alone rather than guess.
     if text.count(",") != 1:
         return text
     last, first = text.split(",", 1)
