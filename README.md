@@ -65,8 +65,9 @@ gen = RandomNameGenerator(
 
 First working version. The default name pools are now real-sized, "Last,
 First" input is reordered automatically, and common titles/suffixes are
-stripped. Still missing: a test suite - see "What it doesn't do" above for
-the full list of gaps.
+stripped. There is now a unittest suite covering the formatter and the
+generator; run it from the repository root with `python -m unittest`. See
+"What it doesn't do" above for the list of gaps.
 
 ## License
 
